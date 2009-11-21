@@ -1,10 +1,9 @@
-
 require 'rbconfig'
 require 'tempfile'
 require 'tmpdir'
 require 'yaml'
 require File.join(File.dirname(__FILE__), 'contrib', 'uri_ext')
-require 'archive/tar/minitar'
+require 'archive/tar/minitar' # a gem
 require 'zlib'
 require 'fileutils'
 
@@ -78,20 +77,17 @@ module Ruby_core_source
           Dir.rmdir dir
           # recreate it
           svn_dir = dir + '/' + svn_version
-          system("svn co -r#{svn_version} http://svn.ruby-lang.org/repos/ruby/trunk #{svn_dir}")# --depth files")
-          # recreate id.h, etc.
+          system("svn co -r#{svn_version} http://svn.ruby-lang.org/repos/ruby/trunk #{svn_dir}")
           Dir.chdir(svn_dir) do
+            # create id.h (needed and must be created for some reason)
             system("sh -c 'autoconf'")
-            system("sh -c './configure --disable-doc'")
-            system("sh -c 'make id.h'") # create id.h <sigh> # make id.h ?
+            system("sh -c './configure'")
+            system("sh -c 'make id.h'") 
           end
         else
           Archive::Tar::Minitar.unpack(tgz, dir) # here's where it unpacks 'em all
         end
-        puts 'here1', 'copying', 'from', ruby_dir, inc_dir, hdr_dir, 'to', dest_dir, 'should have headers there'
-        FileUtils.cp(Dir.glob([ inc_dir, hdr_dir ]), dest_dir)
-        puts 'waiting gets'
-        gets
+        FileUtils.cp(Dir.glob([ inc_dir, hdr_dir ]), dest_dir)        
       }
     }
 
