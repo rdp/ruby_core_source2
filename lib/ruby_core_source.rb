@@ -44,6 +44,7 @@ module Ruby_core_source
     # Check if core headers were already downloaded; if so, use them
     #
     dest_dir = Config::CONFIG["rubyhdrdir"] + "/" + ( ruby_dir || svn_version )
+    puts dest_dir
     with_cppflags("-I" + dest_dir) {
       if hdrs.call
         create_makefile(name)
@@ -68,7 +69,6 @@ module Ruby_core_source
         ruby_dir = svn_version
       end
 
-
       FileUtils.mkdir_p(dest_dir)
       Dir.mktmpdir { |dir|
         inc_dir = dir + "/" + ruby_dir + "/*.inc"
@@ -81,11 +81,11 @@ module Ruby_core_source
           Dir.chdir(svn_dir) do
             # create id.h (needed and must be created for some reason)
             system("sh -c 'autoconf'")
-            system("sh -c './configure'")
-            system("sh -c 'make id.h'") 
+            system("sh -c './configure --disable-doc'")
+            system("sh -c 'make'") # todo only build version.h id.h
           end
         else
-          Archive::Tar::Minitar.unpack(tgz, dir) # here's where it unpacks 'em all
+          Archive::Tar::Minitar.unpack(tgz, dir)
         end
         FileUtils.cp(Dir.glob([ inc_dir, hdr_dir ]), dest_dir)        
       }
